@@ -20,20 +20,21 @@ auto point_line_distance(
     const Eigen::MatrixBase<DerivedE1>& e1,
     const DistanceMode dmode)
 {
-    logger().warn("point_line_distance call not using sqrt");
-
     assert(p.size() == 2 || p.size() == 3);
     assert(e0.size() == 2 || e0.size() == 3);
     assert(e1.size() == 2 || e1.size() == 3);
 
+    double dist;
     if (p.size() == 2) {
         auto e = e1 - e0;
         auto numerator =
             (e[1] * p[0] - e[0] * p[1] + e1[0] * e0[1] - e1[1] * e0[0]);
-        return numerator * numerator / e.squaredNorm();
+        dist = numerator * numerator / e.squaredNorm();
     } else {
-        return cross(e0 - p, e1 - p).squaredNorm() / (e1 - e0).squaredNorm();
+        dist = cross(e0 - p, e1 - p).squaredNorm() / (e1 - e0).squaredNorm();
     }
+    return (dmode == DistanceMode::SQUARED) ? dist : sqrt(dist);
+
 }
 
 // Symbolically generated derivatives;

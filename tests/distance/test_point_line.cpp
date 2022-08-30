@@ -49,7 +49,7 @@ TEST_CASE("Point-line distance gradient", "[distance][point-line][gradient]")
     e1.x() = 1;
     e1.y() = y_line;
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     Eigen::VectorXd grad;
     point_line_distance_gradient(p, e0, e1, dmode, grad);

@@ -19,8 +19,14 @@ TEST_CASE("Point-edge distance", "[distance][point-edge]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
-    double distance = point_edge_distance(p, e0, e1, DistanceMode::SQUARED);
-    CHECK(distance == Approx(expected_distance * expected_distance));
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
+
+    expected_distance = (dmode == DistanceMode::SQUARED) ? 
+        std::pow(expected_distance,2) : std::abs(expected_distance);
+        
+    double distance = point_edge_distance(p, e0, e1, dmode);
+
+    CHECK(distance == Approx(expected_distance));
 }
 
 TEST_CASE("Point-edge distance gradient", "[distance][point-edge][gradient]")
@@ -34,7 +40,8 @@ TEST_CASE("Point-edge distance gradient", "[distance][point-edge][gradient]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = DistanceMode::SQUARED;//GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
+
 
     Eigen::VectorXd grad;
     point_edge_distance_gradient(p, e0, e1, dmode, grad);
