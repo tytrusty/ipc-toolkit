@@ -25,7 +25,8 @@ auto edge_edge_distance(
     const Eigen::MatrixBase<DerivedEA0>& ea0,
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
-    const Eigen::MatrixBase<DerivedEB1>& eb1)
+    const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode)
 {
     assert(ea0.size() == 3);
     assert(ea1.size() == 3);
@@ -33,7 +34,8 @@ auto edge_edge_distance(
     assert(eb1.size() == 3);
 
     return edge_edge_distance(
-        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1));
+        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1),
+        dmode);
 }
 
 /// @brief Compute the distance between a two lines segments in 3D.
@@ -54,7 +56,8 @@ auto edge_edge_distance(
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
-    const EdgeEdgeDistanceType dtype)
+    const EdgeEdgeDistanceType dtype,
+    const DistanceMode dmode)
 {
     assert(ea0.size() == 3);
     assert(ea1.size() == 3);
@@ -63,31 +66,31 @@ auto edge_edge_distance(
 
     switch (dtype) {
     case EdgeEdgeDistanceType::EA0_EB0:
-        return point_point_distance(ea0, eb0);
+        return point_point_distance(ea0, eb0, dmode);
 
     case EdgeEdgeDistanceType::EA0_EB1:
-        return point_point_distance(ea0, eb1);
+        return point_point_distance(ea0, eb1, dmode);
 
     case EdgeEdgeDistanceType::EA1_EB0:
-        return point_point_distance(ea1, eb0);
+        return point_point_distance(ea1, eb0, dmode);
 
     case EdgeEdgeDistanceType::EA1_EB1:
-        return point_point_distance(ea1, eb1);
+        return point_point_distance(ea1, eb1, dmode);
 
     case EdgeEdgeDistanceType::EA_EB0:
-        return point_edge_distance(eb0, ea0, ea1);
+        return point_edge_distance(eb0, ea0, ea1, dmode);
 
     case EdgeEdgeDistanceType::EA_EB1:
-        return point_edge_distance(eb1, ea0, ea1);
+        return point_edge_distance(eb1, ea0, ea1, dmode);
 
     case EdgeEdgeDistanceType::EA0_EB:
-        return point_edge_distance(ea0, eb0, eb1);
+        return point_edge_distance(ea0, eb0, eb1, dmode);
 
     case EdgeEdgeDistanceType::EA1_EB:
-        return point_edge_distance(ea1, eb0, eb1);
+        return point_edge_distance(ea1, eb0, eb1, dmode);
 
     case EdgeEdgeDistanceType::EA_EB:
-        return line_line_distance(ea0, ea1, eb0, eb1);
+        return line_line_distance(ea0, ea1, eb0, eb1, dmode);
     }
 
     throw std::invalid_argument(
@@ -112,6 +115,7 @@ void edge_edge_distance_gradient(
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     assert(ea0.size() == 3);
@@ -120,7 +124,8 @@ void edge_edge_distance_gradient(
     assert(eb1.size() == 3);
 
     return edge_edge_distance_gradient(
-        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1), grad);
+        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1),
+        dmode, grad);
 }
 
 /// @brief Compute the gradient of the distance between a two lines segments.
@@ -143,6 +148,7 @@ void edge_edge_distance_gradient(
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
     const EdgeEdgeDistanceType dtype,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     int dim = ea0.size();
@@ -156,54 +162,54 @@ void edge_edge_distance_gradient(
     VectorMax9<typename DerivedGrad::Scalar> local_grad;
     switch (dtype) {
     case EdgeEdgeDistanceType::EA0_EB0:
-        point_point_distance_gradient(ea0, eb0, local_grad);
+        point_point_distance_gradient(ea0, eb0, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.segment(2 * dim, dim) = local_grad.tail(dim);
         break;
 
     case EdgeEdgeDistanceType::EA0_EB1:
-        point_point_distance_gradient(ea0, eb1, local_grad);
+        point_point_distance_gradient(ea0, eb1, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.tail(dim) = local_grad.tail(dim);
         break;
 
     case EdgeEdgeDistanceType::EA1_EB0:
-        point_point_distance_gradient(ea1, eb0, local_grad);
+        point_point_distance_gradient(ea1, eb0, dmode, local_grad);
         grad.segment(dim, dim) = local_grad.head(dim);
         grad.segment(2 * dim, dim) = local_grad.tail(dim);
         break;
 
     case EdgeEdgeDistanceType::EA1_EB1:
-        point_point_distance_gradient(ea1, eb1, local_grad);
+        point_point_distance_gradient(ea1, eb1, dmode, local_grad);
         grad.segment(dim, dim) = local_grad.head(dim);
         grad.tail(dim) = local_grad.tail(dim);
         break;
 
     case EdgeEdgeDistanceType::EA_EB0:
-        point_edge_distance_gradient(eb0, ea0, ea1, local_grad);
+        point_edge_distance_gradient(eb0, ea0, ea1, dmode, local_grad);
         grad.head(2 * dim) = local_grad.tail(2 * dim);
         grad.segment(2 * dim, dim) = local_grad.head(dim);
         break;
 
     case EdgeEdgeDistanceType::EA_EB1:
-        point_edge_distance_gradient(eb1, ea0, ea1, local_grad);
+        point_edge_distance_gradient(eb1, ea0, ea1, dmode, local_grad);
         grad.head(2 * dim) = local_grad.tail(2 * dim);
         grad.tail(dim) = local_grad.head(dim);
         break;
 
     case EdgeEdgeDistanceType::EA0_EB:
-        point_edge_distance_gradient(ea0, eb0, eb1, local_grad);
+        point_edge_distance_gradient(ea0, eb0, eb1, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.tail(2 * dim) = local_grad.tail(2 * dim);
         break;
 
     case EdgeEdgeDistanceType::EA1_EB:
-        point_edge_distance_gradient(ea1, eb0, eb1, local_grad);
+        point_edge_distance_gradient(ea1, eb0, eb1, dmode, local_grad);
         grad.tail(3 * dim) = local_grad;
         break;
 
     case EdgeEdgeDistanceType::EA_EB:
-        line_line_distance_gradient(ea0, ea1, eb0, eb1, grad);
+        line_line_distance_gradient(ea0, ea1, eb0, eb1, dmode, grad);
         break;
 
     default:
@@ -230,6 +236,7 @@ void edge_edge_distance_hessian(
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     assert(ea0.size() == 3);
@@ -238,7 +245,8 @@ void edge_edge_distance_hessian(
     assert(eb1.size() == 3);
 
     return edge_edge_distance_hessian(
-        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1), hess);
+        ea0, ea1, eb0, eb1, edge_edge_distance_type(ea0, ea1, eb0, eb1),
+        dmode, hess);
 }
 
 /// @brief Compute the hessian of the distance between a two lines segments.
@@ -261,6 +269,7 @@ void edge_edge_distance_hessian(
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
     const EdgeEdgeDistanceType dtype,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     int dim = ea0.size();
@@ -274,7 +283,7 @@ void edge_edge_distance_hessian(
     MatrixMax9<typename DerivedHess::Scalar> local_hess;
     switch (dtype) {
     case EdgeEdgeDistanceType::EA0_EB0:
-        point_point_distance_hessian(ea0, eb0, local_hess);
+        point_point_distance_hessian(ea0, eb0, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.block(0, 2 * dim, dim, dim) = local_hess.topRightCorner(dim, dim);
         hess.block(2 * dim, 0, dim, dim) =
@@ -284,7 +293,7 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA0_EB1:
-        point_point_distance_hessian(ea0, eb1, local_hess);
+        point_point_distance_hessian(ea0, eb1, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.topRightCorner(dim, dim) = local_hess.topRightCorner(dim, dim);
         hess.bottomLeftCorner(dim, dim) = local_hess.bottomLeftCorner(dim, dim);
@@ -293,12 +302,12 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA1_EB0:
-        point_point_distance_hessian(ea1, eb0, local_hess);
+        point_point_distance_hessian(ea1, eb0, dmode, local_hess);
         hess.block(dim, dim, 2 * dim, 2 * dim) = local_hess;
         break;
 
     case EdgeEdgeDistanceType::EA1_EB1:
-        point_point_distance_hessian(ea1, eb1, local_hess);
+        point_point_distance_hessian(ea1, eb1, dmode, local_hess);
         hess.block(dim, dim, dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.block(dim, 3 * dim, dim, dim) =
             local_hess.topRightCorner(dim, dim);
@@ -309,7 +318,7 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA_EB0:
-        point_edge_distance_hessian(eb0, ea0, ea1, local_hess);
+        point_edge_distance_hessian(eb0, ea0, ea1, dmode, local_hess);
         hess.topLeftCorner(2 * dim, 2 * dim) =
             local_hess.bottomRightCorner(2 * dim, 2 * dim);
         hess.block(0, 2 * dim, 2 * dim, dim) =
@@ -321,7 +330,7 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA_EB1:
-        point_edge_distance_hessian(eb1, ea0, ea1, local_hess);
+        point_edge_distance_hessian(eb1, ea0, ea1, dmode, local_hess);
         hess.topLeftCorner(2 * dim, 2 * dim) =
             local_hess.bottomRightCorner(2 * dim, 2 * dim);
         hess.topRightCorner(2 * dim, dim) =
@@ -332,7 +341,7 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA0_EB:
-        point_edge_distance_hessian(ea0, eb0, eb1, local_hess);
+        point_edge_distance_hessian(ea0, eb0, eb1, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.topRightCorner(dim, 2 * dim) =
             local_hess.topRightCorner(dim, 2 * dim);
@@ -343,12 +352,12 @@ void edge_edge_distance_hessian(
         break;
 
     case EdgeEdgeDistanceType::EA1_EB:
-        point_edge_distance_hessian(ea1, eb0, eb1, local_hess);
+        point_edge_distance_hessian(ea1, eb0, eb1, dmode, local_hess);
         hess.bottomRightCorner(3 * dim, 3 * dim) = local_hess;
         break;
 
     case EdgeEdgeDistanceType::EA_EB:
-        line_line_distance_hessian(ea0, ea1, eb0, eb1, hess);
+        line_line_distance_hessian(ea0, ea1, eb0, eb1, dmode, hess);
         break;
 
     default:

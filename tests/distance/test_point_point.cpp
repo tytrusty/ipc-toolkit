@@ -20,7 +20,8 @@ TEST_CASE("Point-point distance", "[distance][point-point]")
         p1.normalize();
         p1 *= expected_distance;
     }
-    double distance = point_point_distance(p0, p1);
+
+    double distance = point_point_distance(p0, p1, DistanceMode::SQUARED);
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
 
@@ -38,15 +39,17 @@ TEST_CASE("Point-point distance gradient", "[distance][point-point][gradient]")
         p1 *= expected_distance;
     }
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::VectorXd grad;
-    point_point_distance_gradient(p0, p1, grad);
+    point_point_distance_gradient(p0, p1, dmode, grad);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(2 * dim);
     x.head(dim) = p0;
     x.tail(dim) = p1;
-    auto f = [&dim](const Eigen::VectorXd& x) {
-        return point_point_distance(x.head(dim), x.tail(dim));
+    auto f = [&dim, &dmode](const Eigen::VectorXd& x) {
+        return point_point_distance(x.head(dim), x.tail(dim), dmode);
     };
     Eigen::VectorXd fgrad;
     fd::finite_gradient(x, f, fgrad);
@@ -68,16 +71,18 @@ TEST_CASE("Point-point distance hessian", "[distance][point-point][hessian]")
         p1 *= expected_distance;
     }
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::MatrixXd hess;
-    point_point_distance_hessian(p0, p1, hess);
+    point_point_distance_hessian(p0, p1, dmode, hess);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(2 * dim);
     x.head(dim) = p0;
     x.tail(dim) = p1;
-    auto f = [&dim](const Eigen::VectorXd& x) {
+    auto f = [&dim, &dmode](const Eigen::VectorXd& x) {
         Eigen::VectorXd grad;
-        point_point_distance_gradient(x.head(dim), x.tail(dim), grad);
+        point_point_distance_gradient(x.head(dim), x.tail(dim), dmode, grad);
         return grad;
     };
     Eigen::MatrixXd fhess;

@@ -30,8 +30,11 @@ TEST_CASE("Edge-edge distance", "[distance][edge-edge]")
     e1_closest =
         shiftz > 1 ? e11 : (shiftz < -1 ? e10 : Eigen::Vector3d(0, 0, e0z));
 
-    double distance = edge_edge_distance(e00, e01, e10, e11);
-    double expected_distance = point_point_distance(e0_closest, e1_closest);
+    DistanceMode dmode = DistanceMode::SQUARED;
+
+    double distance = edge_edge_distance(e00, e01, e10, e11, dmode);
+    double expected_distance = point_point_distance(e0_closest, e1_closest,
+        dmode);
 
     CAPTURE(e0x, e0y, e0z, edge_edge_distance_type(e00, e01, e10, e11));
     CHECK(distance == Approx(expected_distance).margin(1e-12));
@@ -62,7 +65,8 @@ TEST_CASE("Edge-edge distance degenerate case", "[distance][edge-edge]")
         e11 = R * e11;
     }
 
-    double distance = edge_edge_distance(e00, e01, e10, e11);
+    DistanceMode dmode = DistanceMode::SQUARED;
+    double distance = edge_edge_distance(e00, e01, e10, e11, dmode);
     CHECK(distance == Approx(e0y * e0y).margin(1e-12));
 }
 
@@ -86,9 +90,11 @@ TEST_CASE(
         std::swap(e10, e11);
     }
 
-    double distance = edge_edge_distance(e00, e01, e10, e11);
+    DistanceMode dmode = DistanceMode::SQUARED;
+
+    double distance = edge_edge_distance(e00, e01, e10, e11, dmode);
     double expected_distance = point_point_distance(
-        Eigen::Vector3d(gap, e0y, 0), Eigen::Vector3d(-gap, 0, 0));
+        Eigen::Vector3d(gap, e0y, 0), Eigen::Vector3d(-gap, 0, 0), dmode);
 
     CHECK(distance == Approx(expected_distance).margin(1e-12));
 }
@@ -115,8 +121,10 @@ TEST_CASE("Edge-edge distance gradient", "[distance][edge-edge][gradient]")
     e1_closest =
         shiftz > 1 ? e11 : (shiftz < -1 ? e10 : Eigen::Vector3d(0, 0, e0z));
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::Matrix<double, 12, 1> grad;
-    edge_edge_distance_gradient(e00, e01, e10, e11, grad);
+    edge_edge_distance_gradient(e00, e01, e10, e11, dmode, grad);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(12);
@@ -124,9 +132,10 @@ TEST_CASE("Edge-edge distance gradient", "[distance][edge-edge][gradient]")
     x.segment<3>(3) = e01;
     x.segment<3>(6) = e10;
     x.segment<3>(9) = e11;
-    auto f = [](const Eigen::VectorXd& x) {
+    auto f = [&dmode](const Eigen::VectorXd& x) {
         return edge_edge_distance(
-            x.segment<3>(0), x.segment<3>(3), x.segment<3>(6), x.segment<3>(9));
+            x.segment<3>(0), x.segment<3>(3), x.segment<3>(6), x.segment<3>(9),
+            dmode);
     };
     Eigen::VectorXd fgrad;
     fd::finite_gradient(x, f, fgrad);
@@ -151,9 +160,11 @@ TEST_CASE(
         e10(cos(angle), 1, sin(angle)),
         e11(cos(angle + igl::PI), 1, sin(angle + igl::PI));
 
-    double distance = edge_edge_distance(e00, e01, e10, e11);
+    DistanceMode dmode = DistanceMode::SQUARED;
+
+    double distance = edge_edge_distance(e00, e01, e10, e11, dmode);
     Eigen::VectorXd grad;
-    edge_edge_distance_gradient(e00, e01, e10, e11, grad);
+    edge_edge_distance_gradient(e00, e01, e10, e11, dmode, grad);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(12);
@@ -161,9 +172,10 @@ TEST_CASE(
     x.segment<3>(3) = e01;
     x.segment<3>(6) = e10;
     x.segment<3>(9) = e11;
-    auto f = [](const Eigen::VectorXd& x) {
+    auto f = [&dmode](const Eigen::VectorXd& x) {
         return edge_edge_distance(
-            x.segment<3>(0), x.segment<3>(3), x.segment<3>(6), x.segment<3>(9));
+            x.segment<3>(0), x.segment<3>(3), x.segment<3>(6), x.segment<3>(9),
+            dmode);
     };
     Eigen::VectorXd fgrad;
     fd::finite_gradient(x, f, fgrad);

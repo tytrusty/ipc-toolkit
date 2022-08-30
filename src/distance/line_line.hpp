@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 
 #include <ipc/utils/eigen_ext.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 namespace ipc {
 
@@ -24,12 +25,14 @@ auto line_line_distance(
     const Eigen::MatrixBase<DerivedEA0>& ea0,
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
-    const Eigen::MatrixBase<DerivedEB1>& eb1)
+    const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode)
 {
     assert(ea0.size() == 3);
     assert(ea1.size() == 3);
     assert(eb0.size() == 3);
     assert(eb1.size() == 3);
+    logger().warn("line_line_distance call not using sqrt");
 
     const auto normal = cross(ea1 - ea0, eb1 - eb0);
     const auto line_to_line = (eb0 - ea0).dot(normal);
@@ -88,6 +91,7 @@ void line_line_distance_gradient(
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     assert(ea0.size() == 3);
@@ -120,6 +124,7 @@ void line_line_distance_hessian(
     const Eigen::MatrixBase<DerivedEA1>& ea1,
     const Eigen::MatrixBase<DerivedEB0>& eb0,
     const Eigen::MatrixBase<DerivedEB1>& eb1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     assert(ea0.size() == 3);

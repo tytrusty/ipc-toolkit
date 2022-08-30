@@ -130,7 +130,8 @@ void construct_constraint_set(
                     point_edge_distance_type(V.row(vi), V.row(e0i), V.row(e1i));
 
                 double distance_sqr = point_edge_distance(
-                    V.row(vi), V.row(e0i), V.row(e1i), dtype);
+                    V.row(vi), V.row(e0i), V.row(e1i), dtype,
+                    DistanceMode::SQUARED);
 
                 if (is_active(distance_sqr)) {
                     switch (dtype) {
@@ -176,7 +177,8 @@ void construct_constraint_set(
                     V.row(ea0i), V.row(ea1i), V.row(eb0i), V.row(eb1i));
 
                 double distance_sqr = edge_edge_distance(
-                    V.row(ea0i), V.row(ea1i), V.row(eb0i), V.row(eb1i), dtype);
+                    V.row(ea0i), V.row(ea1i), V.row(eb0i), V.row(eb1i), dtype,
+                    DistanceMode::SQUARED);
 
                 if (is_active(distance_sqr)) {
                     double eps_x = edge_edge_mollifier_threshold(
@@ -273,7 +275,8 @@ void construct_constraint_set(
 
                 double distance_sqr = point_triangle_distance(
                     V.row(fv_candidate.vertex_index), //
-                    V.row(f0i), V.row(f1i), V.row(f2i), dtype);
+                    V.row(f0i), V.row(f1i), V.row(f2i), dtype,
+                    DistanceMode::SQUARED);
 
                 if (is_active(distance_sqr)) {
                     switch (dtype) {

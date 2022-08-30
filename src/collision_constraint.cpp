@@ -90,30 +90,37 @@ VertexVertexConstraint::VertexVertexConstraint(
 double VertexVertexConstraint::compute_distance(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
-    return point_point_distance(V.row(vertex0_index), V.row(vertex1_index));
+    return point_point_distance(V.row(vertex0_index),
+        V.row(vertex1_index), dmode);
 }
 
 VectorMax12d VertexVertexConstraint::compute_distance_gradient(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     VectorMax6d distance_grad;
+
     point_point_distance_gradient(
-        V.row(vertex0_index), V.row(vertex1_index), distance_grad);
+            V.row(vertex0_index), V.row(vertex1_index), dmode, distance_grad);
     return distance_grad;
 }
 
 MatrixMax12d VertexVertexConstraint::compute_distance_hessian(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     MatrixMax6d distance_hess;
+
     point_point_distance_hessian(
-        V.row(vertex0_index), V.row(vertex1_index), distance_hess);
+        V.row(vertex0_index), V.row(vertex1_index), dmode, distance_hess);
+
     return distance_hess;
 }
 
@@ -166,35 +173,38 @@ EdgeVertexConstraint::EdgeVertexConstraint(const EdgeVertexCandidate& candidate)
 double EdgeVertexConstraint::compute_distance(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     // The distance type is known because of construct_constraint_set()
     return point_edge_distance(
         V.row(vertex_index), V.row(E(edge_index, 0)), V.row(E(edge_index, 1)),
-        PointEdgeDistanceType::P_E);
+        PointEdgeDistanceType::P_E, dmode);
 }
 
 VectorMax12d EdgeVertexConstraint::compute_distance_gradient(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     VectorMax9d distance_grad;
     point_edge_distance_gradient(
         V.row(vertex_index), V.row(E(edge_index, 0)), V.row(E(edge_index, 1)),
-        PointEdgeDistanceType::P_E, distance_grad);
+        PointEdgeDistanceType::P_E, dmode, distance_grad);
     return distance_grad;
 }
 
 MatrixMax12d EdgeVertexConstraint::compute_distance_hessian(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     MatrixMax9d distance_hess;
     point_edge_distance_hessian(
         V.row(vertex_index), V.row(E(edge_index, 0)), V.row(E(edge_index, 1)),
-        PointEdgeDistanceType::P_E, distance_hess);
+        PointEdgeDistanceType::P_E, dmode, distance_hess);
     return distance_hess;
 }
 
@@ -251,36 +261,42 @@ EdgeEdgeConstraint::EdgeEdgeConstraint(
 double EdgeEdgeConstraint::compute_distance(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     // The distance type is unknown because of mollified PP and PE
     // constraints where also added as EE constraints.
     return edge_edge_distance(
         V.row(E(edge0_index, 0)), V.row(E(edge0_index, 1)),
-        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)));
+        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)),
+        dmode);
 }
 
 VectorMax12d EdgeEdgeConstraint::compute_distance_gradient(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     VectorMax12d distance_grad;
     edge_edge_distance_gradient(
         V.row(E(edge0_index, 0)), V.row(E(edge0_index, 1)),
-        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)), distance_grad);
+        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)),
+        dmode, distance_grad);
     return distance_grad;
 }
 
 MatrixMax12d EdgeEdgeConstraint::compute_distance_hessian(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     MatrixMax12d distance_hess;
     edge_edge_distance_hessian(
         V.row(E(edge0_index, 0)), V.row(E(edge0_index, 1)),
-        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)), distance_hess);
+        V.row(E(edge1_index, 0)), V.row(E(edge1_index, 1)),
+        dmode, distance_hess);
     return distance_hess;
 }
 
@@ -312,11 +328,12 @@ VectorMax12d EdgeEdgeConstraint::compute_potential_gradient(
 
     // The distance type is unknown because of mollified PP and PE
     // constraints where also added as EE constraints.
+    DistanceMode dmode = DistanceMode::SQUARED;
     const EdgeEdgeDistanceType dtype =
         edge_edge_distance_type(ea0, ea1, eb0, eb1);
-    const double distance = edge_edge_distance(ea0, ea1, eb0, eb1, dtype);
+    const double distance = edge_edge_distance(ea0, ea1, eb0, eb1, dtype, dmode);
     VectorMax12d distance_grad;
-    edge_edge_distance_gradient(ea0, ea1, eb0, eb1, dtype, distance_grad);
+    edge_edge_distance_gradient(ea0, ea1, eb0, eb1, dtype, dmode, distance_grad);
 
     // m(x)
     const double mollifier = edge_edge_mollifier(ea0, ea1, eb0, eb1, eps_x);
@@ -359,13 +376,14 @@ MatrixMax12d EdgeEdgeConstraint::compute_potential_hessian(
     // Compute distance derivatives
     // The distance type is unknown because of mollified PP and PE
     // constraints where also added as EE constraints.
+    DistanceMode dmode = DistanceMode::SQUARED;
     const EdgeEdgeDistanceType dtype =
         edge_edge_distance_type(ea0, ea1, eb0, eb1);
-    const double distance = edge_edge_distance(ea0, ea1, eb0, eb1, dtype);
+    const double distance = edge_edge_distance(ea0, ea1, eb0, eb1, dtype, dmode);
     VectorMax12d distance_grad;
-    edge_edge_distance_gradient(ea0, ea1, eb0, eb1, dtype, distance_grad);
+    edge_edge_distance_gradient(ea0, ea1, eb0, eb1, dtype, dmode, distance_grad);
     MatrixMax12d distance_hess;
-    edge_edge_distance_hessian(ea0, ea1, eb0, eb1, dtype, distance_hess);
+    edge_edge_distance_hessian(ea0, ea1, eb0, eb1, dtype, dmode, distance_hess);
 
     // Compute mollifier derivatives
     const double mollifier = edge_edge_mollifier(ea0, ea1, eb0, eb1, eps_x);
@@ -415,35 +433,40 @@ FaceVertexConstraint::FaceVertexConstraint(const FaceVertexCandidate& candidate)
 double FaceVertexConstraint::compute_distance(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     // The distance type is known because of construct_constraint_set()
     return point_triangle_distance(
         V.row(vertex_index), V.row(F(face_index, 0)), V.row(F(face_index, 1)),
-        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T);
+        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T, dmode);
 }
 
 VectorMax12d FaceVertexConstraint::compute_distance_gradient(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     VectorMax12d distance_grad;
     point_triangle_distance_gradient(
         V.row(vertex_index), V.row(F(face_index, 0)), V.row(F(face_index, 1)),
-        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T, distance_grad);
+        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T, dmode,
+        distance_grad);
     return distance_grad;
 }
 
 MatrixMax12d FaceVertexConstraint::compute_distance_hessian(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     MatrixMax12d distance_hess;
     point_triangle_distance_hessian(
         V.row(vertex_index), V.row(F(face_index, 0)), V.row(F(face_index, 1)),
-        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T, distance_hess);
+        V.row(F(face_index, 2)), PointTriangleDistanceType::P_T, dmode,
+        distance_hess);
     return distance_hess;
 }
 
@@ -462,8 +485,11 @@ PlaneVertexConstraint::PlaneVertexConstraint(
 double PlaneVertexConstraint::compute_distance(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
+    logger().warn("PlaneVertexConstraint compute_distance call not using sqrt");
+
     return point_plane_distance(
         V.row(vertex_index).transpose(), plane_origin, plane_normal);
 }
@@ -471,7 +497,8 @@ double PlaneVertexConstraint::compute_distance(
 VectorMax12d PlaneVertexConstraint::compute_distance_gradient(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     VectorMax3d distance_grad;
     point_plane_distance_gradient(
@@ -483,7 +510,8 @@ VectorMax12d PlaneVertexConstraint::compute_distance_gradient(
 MatrixMax12d PlaneVertexConstraint::compute_distance_hessian(
     const Eigen::MatrixXd& V,
     const Eigen::MatrixXi& E,
-    const Eigen::MatrixXi& F) const
+    const Eigen::MatrixXi& F,
+    const DistanceMode dmode) const
 {
     MatrixMax3d distance_hess;
     point_plane_distance_hessian(

@@ -6,6 +6,7 @@
 
 #include <ipc/broad_phase/collision_candidate.hpp>
 #include <ipc/utils/eigen_ext.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 namespace ipc {
 
@@ -25,17 +26,20 @@ public:
     virtual double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const = 0;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const = 0;
 
     virtual VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const = 0;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const = 0;
 
     virtual MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const = 0;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const = 0;
 
     virtual double compute_potential(
         const Eigen::MatrixXd& V,
@@ -75,17 +79,20 @@ struct VertexVertexConstraint : VertexVertexCandidate, CollisionConstraint {
     double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     double compute_potential(
         const Eigen::MatrixXd& V,
@@ -133,17 +140,20 @@ struct EdgeVertexConstraint : EdgeVertexCandidate, CollisionConstraint {
     double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     double compute_potential(
         const Eigen::MatrixXd& V,
@@ -190,17 +200,20 @@ struct EdgeEdgeConstraint : EdgeEdgeCandidate, CollisionConstraint {
     double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     double compute_potential(
         const Eigen::MatrixXd& V,
@@ -249,17 +262,20 @@ struct FaceVertexConstraint : FaceVertexCandidate, CollisionConstraint {
     double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     template <typename H>
     friend H AbslHashValue(H h, const FaceVertexConstraint& fv)
@@ -286,17 +302,20 @@ struct PlaneVertexConstraint : CollisionConstraint {
     double compute_distance(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax12d compute_distance_gradient(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     MatrixMax12d compute_distance_hessian(
         const Eigen::MatrixXd& V,
         const Eigen::MatrixXi& E,
-        const Eigen::MatrixXi& F) const override;
+        const Eigen::MatrixXi& F,
+        const DistanceMode dmode = DistanceMode::SQUARED) const override;
 
     VectorMax3d plane_origin;
     VectorMax3d plane_normal;

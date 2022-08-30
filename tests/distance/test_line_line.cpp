@@ -16,7 +16,9 @@ TEST_CASE("Line-line distance", "[distance][line-line]")
     double yb = GENERATE(take(10, random(-100.0, 100.0)));
     Eigen::Vector3d eb0(0, yb, -1), eb1(0, yb, 1);
 
-    double distance = line_line_distance(ea0, ea1, eb0, eb1);
+    DistanceMode dmode = DistanceMode::SQUARED;
+
+    double distance = line_line_distance(ea0, ea1, eb0, eb1, dmode);
     double expected_distance = abs(ya - yb);
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
@@ -29,8 +31,10 @@ TEST_CASE("Line-line distance gradient", "[distance][line-line][gradient]")
     double yb = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d eb0(0, yb, -1), eb1(0, yb, 1);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::VectorXd grad;
-    line_line_distance_gradient(ea0, ea1, eb0, eb1, grad);
+    line_line_distance_gradient(ea0, ea1, eb0, eb1, dmode, grad);
 
     Eigen::VectorXd x(12);
     x << ea0, ea1, eb0, eb1;
@@ -38,9 +42,10 @@ TEST_CASE("Line-line distance gradient", "[distance][line-line][gradient]")
     expected_grad.resize(grad.size());
     fd::finite_gradient(
         x,
-        [](const Eigen::VectorXd& x) {
+        [&dmode](const Eigen::VectorXd& x) {
             return line_line_distance(
-                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>());
+                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>(),
+                dmode);
         },
         expected_grad);
 
@@ -57,8 +62,10 @@ TEST_CASE("Line-line distance hessian", "[distance][line-line][hessian]")
     double yb = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d eb0(0, yb, -1), eb1(0, yb, 1);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::MatrixXd hess;
-    line_line_distance_hessian(ea0, ea1, eb0, eb1, hess);
+    line_line_distance_hessian(ea0, ea1, eb0, eb1, dmode, hess);
 
     Eigen::VectorXd x(12);
     x << ea0, ea1, eb0, eb1;
@@ -66,9 +73,10 @@ TEST_CASE("Line-line distance hessian", "[distance][line-line][hessian]")
     expected_hess.resize(hess.rows(), hess.cols());
     fd::finite_hessian(
         x,
-        [](const Eigen::VectorXd& x) {
+        [&dmode](const Eigen::VectorXd& x) {
             return line_line_distance(
-                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>());
+                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>(),
+                dmode);
         },
         expected_hess);
 

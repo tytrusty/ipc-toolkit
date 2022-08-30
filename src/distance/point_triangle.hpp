@@ -25,7 +25,8 @@ auto point_triangle_distance(
     const Eigen::MatrixBase<DerivedP>& p,
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
-    const Eigen::MatrixBase<DerivedT2>& t2)
+    const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode)
 {
     assert(p.size() == 3);
     assert(t0.size() == 3);
@@ -33,7 +34,7 @@ auto point_triangle_distance(
     assert(t2.size() == 3);
 
     return point_triangle_distance(
-        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2));
+        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2), dmode);
 }
 
 /// @brief Compute the distance between a points and a triangle.
@@ -54,7 +55,8 @@ auto point_triangle_distance(
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
-    const PointTriangleDistanceType dtype)
+    const PointTriangleDistanceType dtype,
+    const DistanceMode dmode)
 {
     assert(p.size() == 3);
     assert(t0.size() == 3);
@@ -63,24 +65,25 @@ auto point_triangle_distance(
 
     switch (dtype) {
     case PointTriangleDistanceType::P_T0:
-        return point_point_distance(p, t0);
+        return point_point_distance(p, t0, dmode);
 
     case PointTriangleDistanceType::P_T1:
-        return point_point_distance(p, t1);
+        return point_point_distance(p, t1, dmode);
 
     case PointTriangleDistanceType::P_T2:
-        return point_point_distance(p, t2);
+        return point_point_distance(p, t2, dmode);
 
     case PointTriangleDistanceType::P_E0:
-        return point_line_distance(p, t0, t1);
+        return point_line_distance(p, t0, t1, dmode);
 
     case PointTriangleDistanceType::P_E1:
-        return point_line_distance(p, t1, t2);
+        return point_line_distance(p, t1, t2, dmode);
 
     case PointTriangleDistanceType::P_E2:
-        return point_line_distance(p, t2, t0);
+        return point_line_distance(p, t2, t0, dmode);
 
     case PointTriangleDistanceType::P_T:
+        logger().warn("PointTriangleDistance point_plane_distance call not using sqrt");
         return point_plane_distance(p, t0, t1, t2);
     }
 
@@ -106,6 +109,7 @@ void point_triangle_distance_gradient(
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     assert(p.size() == 3);
@@ -114,7 +118,7 @@ void point_triangle_distance_gradient(
     assert(t2.size() == 3);
 
     return point_triangle_distance_gradient(
-        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2), grad);
+        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2), dmode, grad);
 }
 
 /// @brief Compute the gradient of the distance between a points and a triangle.
@@ -137,6 +141,7 @@ void point_triangle_distance_gradient(
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
     const PointTriangleDistanceType dtype,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     int dim = p.size();
@@ -150,41 +155,42 @@ void point_triangle_distance_gradient(
     VectorMax9<typename DerivedGrad::Scalar> local_grad;
     switch (dtype) {
     case PointTriangleDistanceType::P_T0:
-        point_point_distance_gradient(p, t0, local_grad);
+        point_point_distance_gradient(p, t0, dmode, local_grad);
         grad.head(2 * dim) = local_grad;
         break;
 
     case PointTriangleDistanceType::P_T1:
-        point_point_distance_gradient(p, t1, local_grad);
+        point_point_distance_gradient(p, t1, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.segment(2 * dim, dim) = local_grad.tail(dim);
         break;
 
     case PointTriangleDistanceType::P_T2:
-        point_point_distance_gradient(p, t2, local_grad);
+        point_point_distance_gradient(p, t2, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.tail(dim) = local_grad.tail(dim);
         break;
 
     case PointTriangleDistanceType::P_E0:
-        point_line_distance_gradient(p, t0, t1, local_grad);
+        point_line_distance_gradient(p, t0, t1, dmode, local_grad);
         grad.head(3 * dim) = local_grad;
         break;
 
     case PointTriangleDistanceType::P_E1:
-        point_line_distance_gradient(p, t1, t2, local_grad);
+        point_line_distance_gradient(p, t1, t2, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);
         grad.tail(2 * dim) = local_grad.tail(2 * dim);
         break;
 
     case PointTriangleDistanceType::P_E2:
-        point_line_distance_gradient(p, t2, t0, local_grad);
+        point_line_distance_gradient(p, t2, t0, dmode, local_grad);
         grad.head(dim) = local_grad.head(dim);         // ∇_p
         grad.segment(dim, dim) = local_grad.tail(dim); // ∇_{t0}
         grad.tail(dim) = local_grad.segment(dim, dim); // ∇_{t2}
         break;
 
     case PointTriangleDistanceType::P_T:
+        logger().warn("PointTriangleDistance point_plane_distance_gradient call not using sqrt");
         point_plane_distance_gradient(p, t0, t1, t2, grad);
         break;
 
@@ -212,6 +218,7 @@ void point_triangle_distance_hessian(
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     assert(p.size() == 3);
@@ -220,7 +227,8 @@ void point_triangle_distance_hessian(
     assert(t2.size() == 3);
 
     return point_triangle_distance_hessian(
-        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2), hess);
+        p, t0, t1, t2, point_triangle_distance_type(p, t0, t1, t2), dmode,
+         hess);
 }
 
 /// @brief Compute the hessian of the distance between a points and a triangle.
@@ -243,6 +251,7 @@ void point_triangle_distance_hessian(
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
     const PointTriangleDistanceType dtype,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     int dim = p.size();
@@ -256,12 +265,12 @@ void point_triangle_distance_hessian(
     MatrixMax9<typename DerivedHess::Scalar> local_hess;
     switch (dtype) {
     case PointTriangleDistanceType::P_T0:
-        point_point_distance_hessian(p, t0, local_hess);
+        point_point_distance_hessian(p, t0, dmode, local_hess);
         hess.topLeftCorner(2 * dim, 2 * dim) = local_hess;
         break;
 
     case PointTriangleDistanceType::P_T1:
-        point_point_distance_hessian(p, t1, local_hess);
+        point_point_distance_hessian(p, t1, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.block(0, 2 * dim, dim, dim) = local_hess.topRightCorner(dim, dim);
         hess.block(2 * dim, 0, dim, dim) =
@@ -271,7 +280,7 @@ void point_triangle_distance_hessian(
         break;
 
     case PointTriangleDistanceType::P_T2:
-        point_point_distance_hessian(p, t2, local_hess);
+        point_point_distance_hessian(p, t2, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.topRightCorner(dim, dim) = local_hess.topRightCorner(dim, dim);
         hess.bottomLeftCorner(dim, dim) = local_hess.bottomLeftCorner(dim, dim);
@@ -280,12 +289,12 @@ void point_triangle_distance_hessian(
         break;
 
     case PointTriangleDistanceType::P_E0:
-        point_line_distance_hessian(p, t0, t1, local_hess);
+        point_line_distance_hessian(p, t0, t1, dmode, local_hess);
         hess.topLeftCorner(3 * dim, 3 * dim) = local_hess;
         break;
 
     case PointTriangleDistanceType::P_E1:
-        point_line_distance_hessian(p, t1, t2, local_hess);
+        point_line_distance_hessian(p, t1, t2, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.topRightCorner(dim, 2 * dim) =
             local_hess.topRightCorner(dim, 2 * dim);
@@ -296,7 +305,7 @@ void point_triangle_distance_hessian(
         break;
 
     case PointTriangleDistanceType::P_E2:
-        point_line_distance_hessian(p, t2, t0, local_hess);
+        point_line_distance_hessian(p, t2, t0, dmode, local_hess);
         hess.topLeftCorner(dim, dim) = local_hess.topLeftCorner(dim, dim);
         hess.block(0, dim, dim, dim) = local_hess.topRightCorner(dim, dim);
         hess.topRightCorner(dim, dim) = local_hess.block(0, dim, dim, dim);
@@ -311,6 +320,7 @@ void point_triangle_distance_hessian(
         break;
 
     case PointTriangleDistanceType::P_T:
+        logger().warn("PointTriangleDistance point_plane_distance_hessian call not using sqrt");
         point_plane_distance_hessian(p, t0, t1, t2, hess);
         break;
 

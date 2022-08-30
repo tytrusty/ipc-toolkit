@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 
 #include <ipc/distance/point_point.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 namespace ipc {
 
@@ -16,8 +17,11 @@ template <typename DerivedP, typename DerivedE0, typename DerivedE1>
 auto point_line_distance(
     const Eigen::MatrixBase<DerivedP>& p,
     const Eigen::MatrixBase<DerivedE0>& e0,
-    const Eigen::MatrixBase<DerivedE1>& e1)
+    const Eigen::MatrixBase<DerivedE1>& e1,
+    const DistanceMode dmode)
 {
+    logger().warn("point_line_distance call not using sqrt");
+
     assert(p.size() == 2 || p.size() == 3);
     assert(e0.size() == 2 || e0.size() == 3);
     assert(e1.size() == 2 || e1.size() == 3);
@@ -34,6 +38,7 @@ auto point_line_distance(
 
 // Symbolically generated derivatives;
 namespace autogen {
+
     void point_line_distance_gradient_2D(
         double v01,
         double v02,
@@ -43,7 +48,16 @@ namespace autogen {
         double v22,
         double g[6]);
 
-    void point_line_distance_gradient_3D(
+    void point_line_squared_distance_gradient_2D(
+        double v01,
+        double v02,
+        double v11,
+        double v12,
+        double v21,
+        double v22,
+        double g[6]);
+
+    void point_line_squared_distance_gradient_3D(
         double v01,
         double v02,
         double v03,
@@ -55,7 +69,7 @@ namespace autogen {
         double v23,
         double g[9]);
 
-    void point_line_distance_hessian_2D(
+    void point_line_squared_distance_hessian_2D(
         double v01,
         double v02,
         double v11,
@@ -64,7 +78,7 @@ namespace autogen {
         double v22,
         double H[36]);
 
-    void point_line_distance_hessian_3D(
+    void point_line_squared_distance_hessian_3D(
         double v01,
         double v02,
         double v03,
@@ -92,6 +106,7 @@ void point_line_distance_gradient(
     const Eigen::MatrixBase<DerivedP>& p,
     const Eigen::MatrixBase<DerivedE0>& e0,
     const Eigen::MatrixBase<DerivedE1>& e1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     assert(p.size() == 2 || p.size() == 3);
@@ -100,10 +115,19 @@ void point_line_distance_gradient(
 
     grad.resize(p.size() + e0.size() + e1.size());
     if (p.size() == 2) {
-        autogen::point_line_distance_gradient_2D(
-            p[0], p[1], e0[0], e0[1], e1[0], e1[1], grad.data());
+        if (dmode == DistanceMode::SQUARED){
+            autogen::point_line_squared_distance_gradient_2D(
+                p[0], p[1], e0[0], e0[1], e1[0], e1[1], grad.data());
+        } else {
+            autogen::point_line_distance_gradient_2D(
+                p[0], p[1], e0[0], e0[1], e1[0], e1[1], grad.data());
+        }
+
     } else {
-        autogen::point_line_distance_gradient_3D(
+        if (dmode == DistanceMode::SQRT) {
+        logger().warn("point_line_distance_gradient sqrt 3D grad unsupported");
+        }
+        autogen::point_line_squared_distance_gradient_3D(
             p[0], p[1], p[2], e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
             grad.data());
     }
@@ -124,6 +148,7 @@ void point_line_distance_hessian(
     const Eigen::MatrixBase<DerivedP>& p,
     const Eigen::MatrixBase<DerivedE0>& e0,
     const Eigen::MatrixBase<DerivedE1>& e1,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     assert(p.size() == 2 || p.size() == 3);
@@ -133,10 +158,10 @@ void point_line_distance_hessian(
     hess.resize(
         p.size() + e0.size() + e1.size(), p.size() + e0.size() + e1.size());
     if (p.size() == 2) {
-        autogen::point_line_distance_hessian_2D(
+        autogen::point_line_squared_distance_hessian_2D(
             p[0], p[1], e0[0], e0[1], e1[0], e1[1], hess.data());
     } else {
-        autogen::point_line_distance_hessian_3D(
+        autogen::point_line_squared_distance_hessian_3D(
             p[0], p[1], p[2], e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
             hess.data());
     }

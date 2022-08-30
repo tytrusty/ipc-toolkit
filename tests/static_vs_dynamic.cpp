@@ -2,6 +2,7 @@
 
 #include <ipc/distance/point_triangle.hpp>
 #include <ipc/utils/eigen_ext.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 using namespace ipc;
 
@@ -20,13 +21,15 @@ TEST_CASE("Template dynamic vs static", "[!benchmark][eigen]")
         Eigen::Vector3d t1 = V.row(t1i);
         Eigen::Vector3d t2 = V.row(t2i);
 
-        point_triangle_distance_hessian(p, t0, t1, t2, hess);
+        point_triangle_distance_hessian(p, t0, t1, t2,
+            DistanceMode::SQUARED, hess);
     };
 
     BENCHMARK("Dynamic")
     {
         MatrixMax12d hess;
         point_triangle_distance_hessian(
-            V.row(vi), V.row(t0i), V.row(t1i), V.row(t2i), hess);
+            V.row(vi), V.row(t0i), V.row(t1i), V.row(t2i), 
+            DistanceMode::SQUARED, hess);
     };
 }

@@ -13,6 +13,7 @@
 
 #include <ipc/distance/edge_edge.hpp>
 #include <ipc/distance/point_triangle.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 namespace ipc {
 
@@ -94,7 +95,8 @@ bool point_point_ccd(
 {
     assert(tmax >= 0 && tmax <= 1.0);
 
-    double initial_distance = sqrt(point_point_distance(p0_t0, p1_t0));
+    DistanceMode dmode = DistanceMode::SQUARED;
+    double initial_distance = sqrt(point_point_distance(p0_t0, p1_t0, dmode));
 
     double adjusted_tolerance = std::min(
         INITIAL_DISTANCE_TOLERANCE_SCALE * initial_distance, tolerance);
@@ -155,7 +157,9 @@ bool point_edge_ccd_2D(
     Eigen::Vector3d e0_t1_3D = to_3D(e0_t1);
     Eigen::Vector3d e1_t1_3D = to_3D(e1_t1);
 
-    double initial_distance = sqrt(point_edge_distance(p_t0, e0_t0, e1_t0));
+    DistanceMode dmode = DistanceMode::SQUARED;
+    double initial_distance = sqrt(point_edge_distance(p_t0, e0_t0, e1_t0,
+        dmode));
 
     double adjusted_tolerance = std::min(
         INITIAL_DISTANCE_TOLERANCE_SCALE * initial_distance, tolerance);
@@ -205,7 +209,9 @@ bool point_edge_ccd_3D(
 {
     assert(tmax >= 0 && tmax <= 1.0);
 
-    double initial_distance = sqrt(point_edge_distance(p_t0, e0_t0, e1_t0));
+    DistanceMode dmode = DistanceMode::SQUARED;
+    double initial_distance = sqrt(point_edge_distance(p_t0, e0_t0, e1_t0,
+        dmode));
 
     double adjusted_tolerance = std::min(
         INITIAL_DISTANCE_TOLERANCE_SCALE * initial_distance, tolerance);
@@ -290,8 +296,10 @@ bool edge_edge_ccd(
 {
     assert(tmax >= 0 && tmax <= 1.0);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     double initial_distance =
-        sqrt(edge_edge_distance(ea0_t0, ea1_t0, eb0_t0, eb1_t0));
+        sqrt(edge_edge_distance(ea0_t0, ea1_t0, eb0_t0, eb1_t0, dmode));
 
     double adjusted_tolerance = std::min(
         INITIAL_DISTANCE_TOLERANCE_SCALE * initial_distance, tolerance);
@@ -346,8 +354,10 @@ bool point_triangle_ccd(
 {
     assert(tmax >= 0 && tmax <= 1.0);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     double initial_distance =
-        sqrt(point_triangle_distance(p_t0, t0_t0, t1_t0, t2_t0));
+        sqrt(point_triangle_distance(p_t0, t0_t0, t1_t0, t2_t0, dmode));
 
     double adjusted_tolerance = std::min(
         INITIAL_DISTANCE_TOLERANCE_SCALE * initial_distance, tolerance);

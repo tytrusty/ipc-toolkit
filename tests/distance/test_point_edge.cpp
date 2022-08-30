@@ -19,7 +19,7 @@ TEST_CASE("Point-edge distance", "[distance][point-edge]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
-    double distance = point_edge_distance(p, e0, e1);
+    double distance = point_edge_distance(p, e0, e1, DistanceMode::SQUARED);
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
 
@@ -34,17 +34,19 @@ TEST_CASE("Point-edge distance gradient", "[distance][point-edge][gradient]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::VectorXd grad;
-    point_edge_distance_gradient(p, e0, e1, grad);
+    point_edge_distance_gradient(p, e0, e1, dmode, grad);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(3 * dim);
     x.segment(0 * dim, dim) = p;
     x.segment(1 * dim, dim) = e0;
     x.segment(2 * dim, dim) = e1;
-    auto f = [&dim](const Eigen::VectorXd& x) {
+    auto f = [&dim, &dmode](const Eigen::VectorXd& x) {
         return point_edge_distance(
-            x.head(dim), x.segment(dim, dim), x.tail(dim));
+            x.head(dim), x.segment(dim, dim), x.tail(dim), dmode);
     };
     Eigen::VectorXd fgrad;
     fd::finite_gradient(x, f, fgrad);
@@ -63,17 +65,19 @@ TEST_CASE("Point-edge distance hessian", "[distance][point-edge][hessian]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::MatrixXd hess;
-    point_edge_distance_hessian(p, e0, e1, hess);
+    point_edge_distance_hessian(p, e0, e1, dmode, hess);
 
     // Compute the gradient using finite differences
     Eigen::VectorXd x(3 * dim);
     x.segment(0 * dim, dim) = p;
     x.segment(1 * dim, dim) = e0;
     x.segment(2 * dim, dim) = e1;
-    auto f = [&dim](const Eigen::VectorXd& x) {
+    auto f = [&dim, &dmode](const Eigen::VectorXd& x) {
         return point_edge_distance(
-            x.head(dim), x.segment(dim, dim), x.tail(dim));
+            x.head(dim), x.segment(dim, dim), x.tail(dim), dmode);
     };
     Eigen::MatrixXd fhess;
     fd::finite_hessian(x, f, fhess);

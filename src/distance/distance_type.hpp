@@ -4,6 +4,12 @@
 
 namespace ipc {
 
+/// Enumeration of distance types
+enum class DistanceMode {
+    SQRT = 0,
+    SQUARED
+};  
+
 /// @brief Closest pair between a point and edge.
 enum class PointEdgeDistanceType {
     P_E0, ///< The point is closest to edge vertex zero.
