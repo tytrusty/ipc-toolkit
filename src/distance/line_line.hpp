@@ -32,16 +32,24 @@ auto line_line_distance(
     assert(ea1.size() == 3);
     assert(eb0.size() == 3);
     assert(eb1.size() == 3);
-    logger().warn("line_line_distance call not using sqrt");
 
     const auto normal = cross(ea1 - ea0, eb1 - eb0);
     const auto line_to_line = (eb0 - ea0).dot(normal);
-    return line_to_line * line_to_line / normal.squaredNorm();
+    auto dist = line_to_line * line_to_line / normal.squaredNorm();
+    if (dmode == DistanceMode::SQRT) {
+        dist = std::sqrt(dist);
+    }
+    return dist;
 }
 
 // Symbolically generated derivatives;
 namespace autogen {
+
     void line_line_distance_gradient(
+        double in1[12],
+        double g[12]);
+
+    void line_line_squared_distance_gradient(
         double v01,
         double v02,
         double v03,
@@ -56,7 +64,7 @@ namespace autogen {
         double v33,
         double g[12]);
 
-    void line_line_distance_hessian(
+    void line_line_squared_distance_hessian(
         double v01,
         double v02,
         double v03,
@@ -100,9 +108,14 @@ void line_line_distance_gradient(
     assert(eb1.size() == 3);
 
     grad.resize(ea0.size() + ea1.size() + eb0.size() + eb1.size());
-    autogen::line_line_distance_gradient(
-        ea0[0], ea0[1], ea0[2], ea1[0], ea1[1], ea1[2], eb0[0], eb0[1], eb0[2],
-        eb1[0], eb1[1], eb1[2], grad.data());
+    if (dmode == DistanceMode::SQUARED) {
+        autogen::line_line_squared_distance_gradient(
+            ea0[0], ea0[1], ea0[2], ea1[0], ea1[1], ea1[2], eb0[0], eb0[1],
+            eb0[2], eb1[0], eb1[1], eb1[2], grad.data());
+    } else {
+
+    }
+
 }
 
 /// @brief Compute the hessian of the distance between a two lines in 3D.
@@ -132,10 +145,14 @@ void line_line_distance_hessian(
     assert(eb0.size() == 3);
     assert(eb1.size() == 3);
 
+    if (dmode == DistanceMode::SQRT) {
+        logger().warn("line_line_distance_hessian sqrt unsupported");
+    }
+
     hess.resize(
         ea0.size() + ea1.size() + eb0.size() + eb1.size(),
         ea0.size() + ea1.size() + eb0.size() + eb1.size());
-    autogen::line_line_distance_hessian(
+    autogen::line_line_squared_distance_hessian(
         ea0[0], ea0[1], ea0[2], ea1[0], ea1[1], ea1[2], eb0[0], eb0[1], eb0[2],
         eb1[0], eb1[1], eb1[2], hess.data());
 }

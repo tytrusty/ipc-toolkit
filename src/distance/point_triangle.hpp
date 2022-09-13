@@ -83,8 +83,7 @@ auto point_triangle_distance(
         return point_line_distance(p, t2, t0, dmode);
 
     case PointTriangleDistanceType::P_T:
-        logger().warn("PointTriangleDistance point_plane_distance call not using sqrt");
-        return point_plane_distance(p, t0, t1, t2);
+        return point_plane_distance(p, t0, t1, t2, dmode);
     }
 
     throw std::invalid_argument(
@@ -190,8 +189,7 @@ void point_triangle_distance_gradient(
         break;
 
     case PointTriangleDistanceType::P_T:
-        logger().warn("PointTriangleDistance point_plane_distance_gradient call not using sqrt");
-        point_plane_distance_gradient(p, t0, t1, t2, grad);
+        point_plane_distance_gradient(p, t0, t1, t2, dmode, grad);
         break;
 
     default:
@@ -320,8 +318,7 @@ void point_triangle_distance_hessian(
         break;
 
     case PointTriangleDistanceType::P_T:
-        logger().warn("PointTriangleDistance point_plane_distance_hessian call not using sqrt");
-        point_plane_distance_hessian(p, t0, t1, t2, hess);
+        point_plane_distance_hessian(p, t0, t1, t2, dmode, hess);
         break;
 
     default:

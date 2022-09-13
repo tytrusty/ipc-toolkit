@@ -16,7 +16,9 @@ TEST_CASE("Point-plane distance", "[distance][point-plane]")
     double y_plane = GENERATE(take(10, random(-100.0, 100.0)));
     Eigen::Vector3d t0(-1, y_plane, 0), t1(1, y_plane, -1), t2(1, y_plane, 0);
 
-    double distance = point_plane_distance(p, t0, t1, t2);
+    DistanceMode dmode = DistanceMode::SQUARED;
+
+    double distance = point_plane_distance(p, t0, t1, t2, dmode);
     double expected_distance = abs(y - y_plane);
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
@@ -31,8 +33,10 @@ TEST_CASE("Point-plane distance gradient", "[distance][point-plane][gradient]")
     double y_plane = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d t0(-1, y_plane, 0), t1(1, y_plane, -1), t2(1, y_plane, 0);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::VectorXd grad;
-    point_plane_distance_gradient(p, t0, t1, t2, grad);
+    point_plane_distance_gradient(p, t0, t1, t2, dmode, grad);
 
     Eigen::VectorXd x_vec(12);
     x_vec << p, t0, t1, t2;
@@ -40,9 +44,10 @@ TEST_CASE("Point-plane distance gradient", "[distance][point-plane][gradient]")
     expected_grad.resize(grad.size());
     fd::finite_gradient(
         x_vec,
-        [](const Eigen::VectorXd& x) {
+        [&dmode](const Eigen::VectorXd& x) {
             return point_plane_distance(
-                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>());
+                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>(),
+                dmode);
         },
         expected_grad);
 
@@ -60,8 +65,10 @@ TEST_CASE("Point-plane distance hessian", "[distance][point-plane][hessian]")
     double y_plane = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d t0(-1, y_plane, 0), t1(1, y_plane, -1), t2(1, y_plane, 0);
 
+    DistanceMode dmode = DistanceMode::SQUARED;
+
     Eigen::MatrixXd hess;
-    point_plane_distance_hessian(p, t0, t1, t2, hess);
+    point_plane_distance_hessian(p, t0, t1, t2, dmode, hess);
 
     Eigen::VectorXd x_vec(12);
     x_vec << p, t0, t1, t2;
@@ -69,9 +76,10 @@ TEST_CASE("Point-plane distance hessian", "[distance][point-plane][hessian]")
     expected_hess.resize(hess.rows(), hess.cols());
     fd::finite_hessian(
         x_vec,
-        [](const Eigen::VectorXd& x) {
+        [&dmode](const Eigen::VectorXd& x) {
             return point_plane_distance(
-                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>());
+                x.head<3>(), x.segment<3>(3), x.segment<3>(6), x.tail<3>(),
+                dmode);
         },
         expected_hess);
 

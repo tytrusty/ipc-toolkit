@@ -49,6 +49,10 @@ namespace autogen {
         double v22,
         double g[6]);
 
+    void point_line_distance_gradient_3D(
+        double in1[9],
+        double g[9]);
+
     void point_line_squared_distance_gradient_2D(
         double v01,
         double v02,
@@ -125,12 +129,15 @@ void point_line_distance_gradient(
         }
 
     } else {
-        if (dmode == DistanceMode::SQRT) {
-        logger().warn("point_line_distance_gradient sqrt 3D grad unsupported");
+        if (dmode == DistanceMode::SQUARED) {
+            autogen::point_line_squared_distance_gradient_3D(
+                p[0], p[1], p[2], e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
+                grad.data());
+        } else {
+            double in[9] = {p[0], p[1], p[2], e0[0], e0[1], e0[2], e1[0],
+                e1[1], e1[2]};
+            autogen::point_line_distance_gradient_3D(in, grad.data());
         }
-        autogen::point_line_squared_distance_gradient_3D(
-            p[0], p[1], p[2], e0[0], e0[1], e0[2], e1[0], e1[1], e1[2],
-            grad.data());
     }
 }
 
@@ -155,6 +162,10 @@ void point_line_distance_hessian(
     assert(p.size() == 2 || p.size() == 3);
     assert(e0.size() == 2 || e0.size() == 3);
     assert(e1.size() == 2 || e1.size() == 3);
+
+    if (dmode == DistanceMode::SQRT) {
+        logger().warn("point_line_distance_hessian sqrt unsupported");
+    }
 
     hess.resize(
         p.size() + e0.size() + e1.size(), p.size() + e0.size() + e1.size());

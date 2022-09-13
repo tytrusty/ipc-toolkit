@@ -4,6 +4,7 @@
 #include <Eigen/Geometry>
 
 #include <ipc/utils/eigen_ext.hpp>
+#include <ipc/distance/distance_type.hpp>
 
 namespace ipc {
 
@@ -39,7 +40,8 @@ auto point_plane_distance(
     const Eigen::MatrixBase<DerivedP>& p,
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
-    const Eigen::MatrixBase<DerivedT2>& t2)
+    const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode)
 {
     assert(p.size() == 3);
     assert(t0.size() == 3);
@@ -47,12 +49,21 @@ auto point_plane_distance(
     assert(t2.size() == 3);
 
     auto normal = cross(t1 - t0, t2 - t0);
-    return point_plane_distance(p, t0, normal);
+    auto dist = point_plane_distance(p, t0, normal);
+    if (dmode == DistanceMode::SQRT) {
+        dist = std::sqrt(dist);
+    }
+    return dist;
 }
 
 // Symbolically generated derivatives;
 namespace autogen {
+
     void point_plane_distance_gradient(
+        double in1[12],
+        double g[12]);
+
+    void point_plane_squared_distance_gradient(
         double v01,
         double v02,
         double v03,
@@ -67,7 +78,7 @@ namespace autogen {
         double v33,
         double g[12]);
 
-    void point_plane_distance_hessian(
+    void point_plane_squared_distance_hessian(
         double v01,
         double v02,
         double v03,
@@ -121,6 +132,7 @@ void point_plane_distance_gradient(
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedGrad>& grad)
 {
     assert(p.size() == 3);
@@ -129,9 +141,16 @@ void point_plane_distance_gradient(
     assert(t2.size() == 3);
 
     grad.resize(p.size() + t0.size() + t1.size() + t2.size());
-    autogen::point_plane_distance_gradient(
-        p[0], p[1], p[2], t0[0], t0[1], t0[2], t1[0], t1[1], t1[2], t2[0],
-        t2[1], t2[2], grad.data());
+    if (dmode == DistanceMode::SQUARED) {
+        autogen::point_plane_squared_distance_gradient(
+            p[0], p[1], p[2], t0[0], t0[1], t0[2], t1[0], t1[1], t1[2], t2[0],
+            t2[1], t2[2], grad.data());
+    } else {
+        double input[12] = {p[0], p[1], p[2], t0[0], t0[1], t0[2], t1[0],
+            t1[1], t1[2], t2[0], t2[1], t2[2]};
+        autogen::point_plane_distance_gradient(input, grad.data());
+    }
+
 }
 
 /// @brief Compute the hessian of the distance between a point and a plane.
@@ -179,6 +198,7 @@ void point_plane_distance_hessian(
     const Eigen::MatrixBase<DerivedT0>& t0,
     const Eigen::MatrixBase<DerivedT1>& t1,
     const Eigen::MatrixBase<DerivedT2>& t2,
+    const DistanceMode dmode,
     Eigen::PlainObjectBase<DerivedHess>& hess)
 {
     assert(p.size() == 3);
@@ -186,10 +206,14 @@ void point_plane_distance_hessian(
     assert(t1.size() == 3);
     assert(t2.size() == 3);
 
+    if (dmode == DistanceMode::SQRT) {
+        logger().warn("point_plane_distance_hessian sqrt unsupported");
+    }
+
     hess.resize(
         p.size() + t0.size() + t1.size() + t2.size(),
         p.size() + t0.size() + t1.size() + t2.size());
-    autogen::point_plane_distance_hessian(
+    autogen::point_plane_squared_distance_hessian(
         p[0], p[1], p[2], t0[0], t0[1], t0[2], t1[0], t1[1], t1[2], t2[0],
         t2[1], t2[2], hess.data());
 }
