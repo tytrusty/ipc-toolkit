@@ -30,7 +30,7 @@ TEST_CASE("Edge-edge distance", "[distance][edge-edge]")
     e1_closest =
         shiftz > 1 ? e11 : (shiftz < -1 ? e10 : Eigen::Vector3d(0, 0, e0z));
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     double distance = edge_edge_distance(e00, e01, e10, e11, dmode);
     double expected_distance = point_point_distance(e0_closest, e1_closest,
@@ -121,7 +121,7 @@ TEST_CASE("Edge-edge distance gradient", "[distance][edge-edge][gradient]")
     e1_closest =
         shiftz > 1 ? e11 : (shiftz < -1 ? e10 : Eigen::Vector3d(0, 0, e0z));
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     Eigen::Matrix<double, 12, 1> grad;
     edge_edge_distance_gradient(e00, e01, e10, e11, dmode, grad);

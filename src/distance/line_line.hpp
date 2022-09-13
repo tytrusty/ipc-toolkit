@@ -113,7 +113,10 @@ void line_line_distance_gradient(
             ea0[0], ea0[1], ea0[2], ea1[0], ea1[1], ea1[2], eb0[0], eb0[1],
             eb0[2], eb1[0], eb1[1], eb1[2], grad.data());
     } else {
-
+        double in[12] = {
+            ea0[0], ea0[1], ea0[2], ea1[0], ea1[1], ea1[2],
+            eb0[0], eb0[1], eb0[2], eb1[0], eb1[1], eb1[2]};
+        autogen::line_line_distance_gradient(in, grad.data());
     }
 
 }

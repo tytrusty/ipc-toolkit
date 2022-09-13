@@ -21,8 +21,16 @@ TEST_CASE("Point-point distance", "[distance][point-point]")
         p1 *= expected_distance;
     }
 
-    double distance = point_point_distance(p0, p1, DistanceMode::SQUARED);
-    CHECK(distance == Approx(expected_distance * expected_distance));
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
+
+    double distance = point_point_distance(p0, p1, dmode);
+
+    expected_distance = abs(expected_distance);
+    if (dmode == DistanceMode::SQUARED) {
+        expected_distance *= expected_distance;
+    }
+
+    CHECK(distance == Approx(expected_distance));
 }
 
 TEST_CASE("Point-point distance gradient", "[distance][point-point][gradient]")
@@ -39,7 +47,7 @@ TEST_CASE("Point-point distance gradient", "[distance][point-point][gradient]")
         p1 *= expected_distance;
     }
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     Eigen::VectorXd grad;
     point_point_distance_gradient(p0, p1, dmode, grad);

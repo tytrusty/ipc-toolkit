@@ -40,7 +40,7 @@ TEST_CASE("Point-edge distance gradient", "[distance][point-edge][gradient]")
     VectorMax3d e1 = VectorMax3d::Zero(dim);
     e1.x() = 10;
 
-    DistanceMode dmode = DistanceMode::SQUARED;//GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
 
     Eigen::VectorXd grad;

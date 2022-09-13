@@ -25,17 +25,20 @@ TEST_CASE("Point-line distance", "[distance][point-line]")
     e1.x() = 1;
     e1.y() = y_line;
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     double distance = point_line_distance(p, e0, e1, dmode);
     double expected_distance = abs(y_point - y_line);
+
+    if (dmode == DistanceMode::SQRT) {
+        expected_distance = std::sqrt(expected_distance);
+    }
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
 
 TEST_CASE("Point-line distance gradient", "[distance][point-line][gradient]")
 {
-    // int dim = GENERATE(2, 3);
-    int dim = 2;
+    int dim = GENERATE(2, 3);
 
     double y_point = GENERATE(take(10, random(-10.0, 10.0)));
     VectorMax3d p = VectorMax3d::Zero(dim);

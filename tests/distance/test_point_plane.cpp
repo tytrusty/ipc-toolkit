@@ -16,10 +16,14 @@ TEST_CASE("Point-plane distance", "[distance][point-plane]")
     double y_plane = GENERATE(take(10, random(-100.0, 100.0)));
     Eigen::Vector3d t0(-1, y_plane, 0), t1(1, y_plane, -1), t2(1, y_plane, 0);
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     double distance = point_plane_distance(p, t0, t1, t2, dmode);
     double expected_distance = abs(y - y_plane);
+
+    if (dmode == DistanceMode::SQRT) {
+        expected_distance = std::sqrt(expected_distance);
+    }
     CHECK(distance == Approx(expected_distance * expected_distance));
 }
 
@@ -33,7 +37,7 @@ TEST_CASE("Point-plane distance gradient", "[distance][point-plane][gradient]")
     double y_plane = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d t0(-1, y_plane, 0), t1(1, y_plane, -1), t2(1, y_plane, 0);
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     Eigen::VectorXd grad;
     point_plane_distance_gradient(p, t0, t1, t2, dmode, grad);

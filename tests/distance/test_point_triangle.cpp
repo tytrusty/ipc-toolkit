@@ -18,6 +18,7 @@ edge_normal(const Eigen::Vector2d& e0, const Eigen::Vector2d& e1)
 
 TEST_CASE("Point-triangle distance", "[distance][point-triangle]")
 {
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
     double py = GENERATE(-10, -1, -1e-12, 0, 1e-12, 1, 10);
     Eigen::Vector3d p(0, py, 0);
     Eigen::Vector3d t0(-1, 0, 1);
@@ -82,8 +83,6 @@ TEST_CASE("Point-triangle distance", "[distance][point-triangle]")
         p.x() = closest_point.x() + scale * perp.x();
         p.z() = closest_point.z() + scale * perp.y();
     }
-
-    DistanceMode dmode = DistanceMode::SQUARED;
 
     double distance = point_triangle_distance(p, t0, t1, t2, dmode);
     CAPTURE(py, closest_point.x(), closest_point.y(), closest_point.z());
@@ -164,7 +163,7 @@ TEST_CASE(
     x.segment<3>(6) = t1;
     x.segment<3>(9) = t2;
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     // Compute the gradient using finite differences
     auto f = [&](const Eigen::VectorXd& x) {

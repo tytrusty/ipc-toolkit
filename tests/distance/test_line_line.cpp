@@ -16,11 +16,15 @@ TEST_CASE("Line-line distance", "[distance][line-line]")
     double yb = GENERATE(take(10, random(-100.0, 100.0)));
     Eigen::Vector3d eb0(0, yb, -1), eb1(0, yb, 1);
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
+
+    double expected_distance = abs(ya - yb);
+    if (dmode == DistanceMode::SQUARED) {
+        expected_distance *= expected_distance;
+    }
 
     double distance = line_line_distance(ea0, ea1, eb0, eb1, dmode);
-    double expected_distance = abs(ya - yb);
-    CHECK(distance == Approx(expected_distance * expected_distance));
+    CHECK(distance == Approx(expected_distance));
 }
 
 TEST_CASE("Line-line distance gradient", "[distance][line-line][gradient]")
@@ -31,7 +35,7 @@ TEST_CASE("Line-line distance gradient", "[distance][line-line][gradient]")
     double yb = GENERATE(take(10, random(-10.0, 10.0)));
     Eigen::Vector3d eb0(0, yb, -1), eb1(0, yb, 1);
 
-    DistanceMode dmode = DistanceMode::SQUARED;
+    DistanceMode dmode = GENERATE(DistanceMode::SQRT, DistanceMode::SQUARED);
 
     Eigen::VectorXd grad;
     line_line_distance_gradient(ea0, ea1, eb0, eb1, dmode, grad);
