@@ -42,6 +42,16 @@ double FrictionConstraint::potential_gradient(double u_norm,
     return multiplicity() * mu * normal_force_magnitude * f1;
 }
 
+double FrictionConstraint::potential_hessian(double u_norm,
+    double epsv_times_h) const {
+    // ∇ₓ μ N(xᵗ) f₁(‖u‖) (where u = T(xᵗ)ᵀ (x - xᵗ))
+    //  = μ N f₁'(‖u‖)
+
+    // Compute μ N(xᵗ) f2
+    return multiplicity() * mu * normal_force_magnitude 
+        * f2(u_norm, epsv_times_h);
+}
+
 double FrictionConstraint::u_norm(
     const Eigen::MatrixXd& U,
     const Eigen::MatrixXi& E,
@@ -68,7 +78,7 @@ VectorMax12d FrictionConstraint::u_norm_gradient(
     // Compute T = ΓᵀP
     const MatrixMax<double, 12, 2> T =
         relative_displacement_matrix().transpose() * tangent_basis;
-        
+
     return T * u / u.norm();
 }
 

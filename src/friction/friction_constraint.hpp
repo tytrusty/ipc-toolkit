@@ -33,8 +33,7 @@ struct FrictionConstraint {
     double potential_gradient(double u_norm, double epsv_times_h) const;
 
     // Hessian of potential with respect to ||u||
-    // Don't need it right now, so not implemented
-    // double potential_hessian(double u_norm, double epsv_times_h) const;
+    double potential_hessian(double u_norm, double epsv_times_h) const;
 
     // Compute ||u||
     double u_norm(
