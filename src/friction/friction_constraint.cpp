@@ -78,8 +78,11 @@ VectorMax12d FrictionConstraint::u_norm_gradient(
     // Compute T = ΓᵀP
     const MatrixMax<double, 12, 2> T =
         relative_displacement_matrix().transpose() * tangent_basis;
-
-    return T * u / u.norm();
+    double u_norm = u.norm();
+    if (u_norm == 0) {
+        u_norm = 1.0;
+    }
+    return T * u / u_norm;
 }
 
 
