@@ -26,6 +26,28 @@ struct FrictionConstraint {
     virtual std::array<long, 4> vertex_indices(
         const Eigen::MatrixXi& E, const Eigen::MatrixXi& F) const = 0;
 
+    // Evaluating potential when ||u|| is provided from external source
+    double potential(double u_norm, double epsv_times_h) const;
+
+    // Gradient with respect to ||u||
+    double potential_gradient(double u_norm, double epsv_times_h) const;
+
+    // Hessian of potential with respect to ||u||
+    // Don't need it right now, so not implemented
+    // double potential_hessian(double u_norm, double epsv_times_h) const;
+
+    // Compute ||u||
+    double u_norm(
+        const Eigen::MatrixXd& U,
+        const Eigen::MatrixXi& E,
+        const Eigen::MatrixXi& F) const;
+
+    // Compute ∇ₓ||u||
+    VectorMax12d u_norm_gradient(
+        const Eigen::MatrixXd& U,
+        const Eigen::MatrixXi& E,
+        const Eigen::MatrixXi& F) const;
+
     virtual VectorMax12d compute_potential_gradient(
         const Eigen::MatrixXd& U,
         const Eigen::MatrixXi& E,

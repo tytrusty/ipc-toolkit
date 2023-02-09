@@ -61,6 +61,8 @@ public:
         const bool project_hessian_to_psd) const;
 
     double minimum_distance = 0;
+    int multiplicity = 1;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -121,7 +123,6 @@ struct VertexVertexConstraint : VertexVertexCandidate, CollisionConstraint {
         return H::combine(std::move(h), min_vi, max_vi);
     }
 
-    int multiplicity = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,7 +181,6 @@ struct EdgeVertexConstraint : EdgeVertexCandidate, CollisionConstraint {
         return H::combine(std::move(h), ev.edge_index, ev.vertex_index);
     }
 
-    int multiplicity = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -28,6 +28,51 @@ void FrictionConstraint::init(
         compute_normal_force_magnitude(x, dhat, barrier_stiffness, dmin);
 }
 
+double FrictionConstraint::potential(double u_norm, double epsv_times_h)
+    const {
+    // μ N(xᵗ) f₀(‖u‖)
+    return multiplicity() * mu * normal_force_magnitude
+        * f0_SF(u_norm, epsv_times_h);
+}
+
+double FrictionConstraint::potential_gradient(double u_norm,
+    double epsv_times_h) const {
+    // d/d||u|| (μ N(xᵗ) f₀(‖u‖) ) = μ N(xᵗ) f₁(‖u‖)
+    const double f1 = u_norm * f1_SF_over_x(u_norm, epsv_times_h);
+    return multiplicity() * mu * normal_force_magnitude * f1;
+}
+
+double FrictionConstraint::u_norm(
+    const Eigen::MatrixXd& U,
+    const Eigen::MatrixXi& E,
+    const Eigen::MatrixXi& F) const
+{
+    // Compute u = PᵀΓ(x - xᵗ)
+    const VectorMax2d u =
+        tangent_basis.transpose() * relative_displacement(select_dofs(U, E, F));
+    return u.norm();
+}
+
+VectorMax12d FrictionConstraint::u_norm_gradient(
+    const Eigen::MatrixXd& U,
+    const Eigen::MatrixXi& E,
+    const Eigen::MatrixXi& F) const
+{
+    // ∇ₓ ‖u‖ (where u = T(xᵗ)ᵀ(x - xᵗ))
+    //  = T(xᵗ) u/‖u‖
+
+    // Compute u = PᵀΓ(x - xᵗ)
+    const VectorMax2d u = tangent_basis.transpose()
+         * relative_displacement(select_dofs(U, E, F));
+
+    // Compute T = ΓᵀP
+    const MatrixMax<double, 12, 2> T =
+        relative_displacement_matrix().transpose() * tangent_basis;
+        
+    return T * u / u.norm();
+}
+
+
 VectorMax12d FrictionConstraint::compute_potential_gradient(
     const Eigen::MatrixXd& U,
     const Eigen::MatrixXi& E,
